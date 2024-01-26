@@ -30,6 +30,15 @@ macro_rules! mix {
 	}
 }
 
+macro_rules! rot {
+	(($a: expr) << $b: literal) => {
+		(($a << $b) | ($a >> (64-$b)))
+	};
+	(($a: expr) >> $b: literal) => {
+        (($a >> $b) | ($a << (64-$b)))
+    };
+}
+
 impl Default for Isaac {
     fn default() -> Self {
         let mut ret = Isaac {
@@ -68,7 +77,7 @@ impl Isaac {
 		let x = self.mem[i];
 		self.aa = val;
 		self.aa += self.mem[j];
-		let y = self.mem[((x.0 as usize) & BITMASK) >> 2] + (self.aa) + (self.bb);
+		let y = (self.mem[((x.0 as usize) & BITMASK) >> 2] ^ self.aa) + (self.bb);
 		self.mem[i] = y;
 		self.bb = self.mem[((y.0 as usize >> RNDSIZL) & BITMASK) >> 2] + x;
 		self.rsl[i] = self.bb;
@@ -83,18 +92,18 @@ impl Isaac {
 		let mut j = hsize;
 		
 		while i < hsize {
-			self.rngstep(!(self.aa ^ (self.aa << 21)), i, j); i += 1; j += 1;
-			self.rngstep(  self.aa ^ (self.aa >> 5 ) , i, j); i += 1; j += 1;
-			self.rngstep(  self.aa ^ (self.aa << 12) , i, j); i += 1; j += 1;
-			self.rngstep(  self.aa ^ (self.aa >> 33) , i, j); i += 1; j += 1;
+			self.rngstep(!(self.aa ^ rot!((self.aa) << 21)), i, j); i += 1; j += 1;
+			self.rngstep(  self.aa ^ rot!((self.aa) >> 5 ) , i, j); i += 1; j += 1;
+			self.rngstep(  self.aa ^ rot!((self.aa) << 12) , i, j); i += 1; j += 1;
+			self.rngstep(  self.aa ^ rot!((self.aa) >> 33) , i, j); i += 1; j += 1;
 		}
 
 		let mut j = 0;
 		while j < hsize {
-			self.rngstep(!(self.aa ^ (self.aa << 21)), i, j); i += 1; j += 1;
-			self.rngstep(  self.aa ^ (self.aa >> 5 ) , i, j); i += 1; j += 1;
-			self.rngstep(  self.aa ^ (self.aa << 12) , i, j); i += 1; j += 1;
-			self.rngstep(  self.aa ^ (self.aa >> 33) , i, j); i += 1; j += 1;
+			self.rngstep(!(self.aa ^ rot!((self.aa) << 21)), i, j); i += 1; j += 1;
+			self.rngstep(  self.aa ^ rot!((self.aa) >> 5 ) , i, j); i += 1; j += 1;
+			self.rngstep(  self.aa ^ rot!((self.aa) << 12) , i, j); i += 1; j += 1;
+			self.rngstep(  self.aa ^ rot!((self.aa) >> 33) , i, j); i += 1; j += 1;
 		}
 	}
 
