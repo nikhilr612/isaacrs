@@ -19,14 +19,14 @@ pub struct Isaac {
 
 macro_rules! mix {
 	($a: ident, $b: ident, $c: ident, $d: ident, $e: ident, $f: ident, $g: ident, $h: ident) => {
-		/*$a-=$e; $f^=$h>>9;  $h+=$a; 
+		$a-=$e; $f^=$h>>9;  $h+=$a; 
 		$b-=$f; $g^=$a<<9;  $a+=$b; 
 		$c-=$g; $h^=$b>>23; $b+=$c; 
 		$d-=$h; $a^=$c<<15; $c+=$d; 
 		$e-=$a; $b^=$d>>14; $d+=$e; 
 		$f-=$b; $c^=$e<<20; $e+=$f; 
 		$g-=$c; $d^=$f>>17; $f+=$g; 
-		$h-=$d; $e^=$g<<14; $g+=$h;*/
+		$h-=$d; $e^=$g<<14; $g+=$h;
 	}
 }
 
@@ -161,5 +161,41 @@ impl Isaac {
 		    }
 		}
 		self.gen_bulk();
+	}
+}
+
+pub struct XorCipher {
+	rng: Isaac,
+	key: u64,
+	mask: u64,
+	count: usize
+}
+
+impl XorCipher {
+
+	/// Create a new XOR Cipher that uses Isaac to generate key bits, and is seeded by `it`.
+	pub fn new(it: impl Iterator<Item=u64>) -> XorCipher {
+		let mut rng = Isaac::with_seed(it);
+		let key = rng.next_raw_u64();
+		XorCipher {
+			rng,
+			key,
+			mask: 0xff,
+			count: 0
+		}
+	}
+
+	/// Generate a byte and xor it with provided byte.
+	pub fn op(&mut self, byte: u8) -> u8 {
+		let k1 = ((self.key & self.mask) >> (self.count*8)) as u8;
+		self.count += 1;
+		if self.count == 8 {
+			self.count = 0;
+			self.key = self.rng.next_raw_u64();
+			self.mask = 0xff;
+		} else {
+			self.mask <<= 8;
+		}
+		byte ^ k1
 	}
 }
