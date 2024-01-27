@@ -1,5 +1,5 @@
 //! A no-std pure-rust implementation of the ISAAC pseudo-random number generator.
-// #![no_std]
+#![no_std]
 
 pub mod isaac;
 
@@ -24,11 +24,17 @@ mod tests {
         for elm in other_array.iter_mut() {
             *elm = prng.randf();
         }
-        println!("{other_array:?}");
     }
 
-    
+    #[test]
     fn cipher_test() {
-        todo!("More shall be added.")
+        let sym_key = [0xC6D7A45B5BEBD507u64, 0x116C7D4AB5BE5D70];
+        let original = [0x4e,0x65,0x63,0x65,0x73,0x73,0x69,0x74,0x79,0x20,0x6b,0x6e,0x6f,0x77,0x73,0x20,0x6e,0x6f,0x20,0x6c,0x61,0x77];
+        let mut transit = original;
+        let mut c1 = isaac::XorCipher::new(sym_key.into_iter());
+        let mut c2 = isaac::XorCipher::new(sym_key.into_iter());
+        c1.endec(&mut transit);
+        c2.endec(&mut transit);
+        assert_eq!(transit, original);
     }
 }

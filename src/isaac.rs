@@ -198,4 +198,10 @@ impl XorCipher {
 		}
 		byte ^ k1
 	}
+
+	pub fn endec(&mut self, data: &mut [u8]) {
+		for val in data {
+			*val = self.op(*val);
+		}
+	}
 }
